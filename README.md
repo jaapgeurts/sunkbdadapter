@@ -16,7 +16,9 @@ Hook up power and ground.
 
 ## Building
 
-You need to download and install (!https://github.com/abcminiuser/lufa)[LUFA].
+You need to download and install [https://github.com/abcminiuser/lufa](LUFA]).
+
+Adjust the makefile and point it to the LUFA_PATH variable to the correct directory.
 
 Then issue the following command:
 

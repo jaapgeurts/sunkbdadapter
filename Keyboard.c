@@ -136,6 +136,7 @@ void EVENT_USB_Device_Connect(void)
 	//	LEDs_SetAllLEDs(LEDMASK_USB_ENUMERATING);
 	// RESET the keyboard
 	ss_write(ssSerial,0x01);
+	// swallow the response
 	ss_read(ssSerial);
 	ss_read(ssSerial);
 	ss_read(ssSerial);
@@ -173,7 +174,7 @@ void EVENT_USB_Device_StartOfFrame(void)
 bool HandleModifier(USB_KeyboardReport_Data_t *KeyboardReport, uint8_t usbKeyCode, bool isReleased)
 {
 
-	if ((usbKeyCode & 0xe0) != 0xe0)
+	if ((usbKeyCode & 0xf8) != 0xe0) // check if 0xe0 <= usbcode <= 0xe7
 		return false;
 
 	uint8_t mask = (1 << (usbKeyCode & 0x07));

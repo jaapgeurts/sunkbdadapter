@@ -5,6 +5,7 @@
 /* Unix */
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <fcntl.h>
 
 /* C */
@@ -50,7 +51,14 @@ int main(int argc, char *argv[])
         udev_unref(udev);
         exit(1);
     }
-
+    uint8_t buf[] = {0x01,0x08};
+    int res = write(fd, buf,sizeof(buf));
+    if (res < 0) {
+        perror("Error sending data to kbd\n");
+    }
+    
+    close(fd);
+    udev_device_unref(dev);
     udev_unref(udev);
     return 0;
 }
@@ -76,7 +84,7 @@ struct udev_device *find_keyboard(struct udev *udev, uint16_t vid, uint16_t pid)
         and create a udev_device object (dev) representing it */
         path = udev_list_entry_get_name(dev_list_entry);
         dev = udev_device_new_from_syspath(udev, path);
-        printf("Device Node Path: %s\n\t(%s)\n", udev_device_get_devnode(dev), path);
+        //printf("Device Node Path: %s\n\t(%s)\n", udev_device_get_devnode(dev), path);
 
         
         // find the first usb_device. This will return the vid & pid to match.
@@ -96,7 +104,7 @@ struct udev_device *find_keyboard(struct udev *udev, uint16_t vid, uint16_t pid)
             uint16_t lPid = strtoull(pidStr, NULL, 16);
             if (vid == lVid && pid == lPid)
             {
-                printf("Found: VID/PID: %.4x %.4x\n", vid, pid);
+                printf("Found: VID/PID: %.4x:%.4x\n", vid, pid);
                 printf("\t%s\t%s\n",
                     udev_device_get_sysattr_value(parent_dev,"manufacturer"),
                     udev_device_get_sysattr_value(parent_dev,"product"));

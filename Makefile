@@ -6,7 +6,7 @@ SRC		:= src
 INCLUDE	:= include
 LIB		:= lib
 
-LIBRARIES	:= -lusb-1.0
+LIBRARIES	:= -ludev
 
 ifeq ($(OS),Windows_NT)
 EXECUTABLE	:= main.exe

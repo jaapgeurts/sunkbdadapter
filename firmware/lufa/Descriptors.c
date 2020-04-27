@@ -67,16 +67,13 @@ const USB_Descriptor_Device_t PROGMEM DeviceDescriptor =
 
 	.Endpoint0Size          = FIXED_CONTROL_ENDPOINT_SIZE,
 
-//	.VendorID               = 0x03EB,
-//	.ProductID              = 0x2042,
 	.VendorID				= 0x0430,
 	.ProductID				= 0x0005,
 	.ReleaseNumber          = VERSION_BCD(0,0,1),
 
-// TODO: fix these
 	.ManufacturerStrIndex   = STRING_ID_Manufacturer,
 	.ProductStrIndex        = STRING_ID_Product,
-	.SerialNumStrIndex      = NO_DESCRIPTOR,
+	.SerialNumStrIndex      = STRING_ID_SerialNum,
 
 	.NumberOfConfigurations = FIXED_NUM_CONFIGURATIONS
 };
@@ -159,6 +156,11 @@ const USB_Descriptor_String_t PROGMEM ManufacturerString = USB_STRING_DESCRIPTOR
  */
 const USB_Descriptor_String_t PROGMEM ProductString = USB_STRING_DESCRIPTOR(L"Type 6 UART Keyboard");
 
+/** Product SerialNum string this is a string which defines the serial number of the project"
+ * 
+ */
+const USB_Descriptor_String_t PROGMEM SerialNumString = USB_STRING_DESCRIPTOR(L"3201272-01");
+
 /** This function is called by the library when in device mode, and must be overridden (see library "USB Descriptors"
  *  documentation) by the application code so that the address and size of a requested descriptor can be given
  *  to the USB library. When the device receives a Get Descriptor request on the control endpoint, this function
@@ -199,6 +201,10 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
 				case STRING_ID_Product:
 					Address = &ProductString;
 					Size    = pgm_read_byte(&ProductString.Header.Size);
+					break;
+				case STRING_ID_SerialNum:
+					Address = &SerialNumString;
+					Size = pgm_read_byte(&SerialNumString.Header.Size);
 					break;
 			}
 

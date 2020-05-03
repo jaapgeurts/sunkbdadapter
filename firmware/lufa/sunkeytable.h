@@ -127,7 +127,7 @@ unsigned char keytable[] = {
     /* 122 */ 0xe7, // r_meta
     /* 123 */ 0x4e, // page down
     /* 124 */ 0x00,
-    /* 125 */ 0x56, // num_plus
+    /* 125 */ 0x57, // num_plus
     /* 126 */ 0x00,
     /* 127 */ 0x00,
 

@@ -95,9 +95,11 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 			.ConfigurationNumber    = 1,
 			.ConfigurationStrIndex  = NO_DESCRIPTOR,
 
-			.ConfigAttributes       = (USB_CONFIG_ATTR_RESERVED | USB_CONFIG_ATTR_SELFPOWERED),
+			//.ConfigAttributes       = (USB_CONFIG_ATTR_RESERVED | USB_CONFIG_ATTR_SELFPOWERED),
+			.ConfigAttributes       = (USB_CONFIG_ATTR_RESERVED),
 
-			.MaxPowerConsumption    = USB_CONFIG_POWER_MA(100)
+// power consumption = max 150mA for the keyboard and 50 for the Arduino
+			.MaxPowerConsumption    = USB_CONFIG_POWER_MA(200)
 		},
 
 	.HID_Interface =

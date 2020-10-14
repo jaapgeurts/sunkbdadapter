@@ -1,0 +1,208 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Connector:USB_B_Micro J1
+U 1 1 5F857A97
+P 1950 2800
+F 0 "J1" H 2007 3267 50  0000 C CNN
+F 1 "USB_B_Micro" H 2007 3176 50  0000 C CNN
+F 2 "Personal:USB_Micro_B_XKB_U254-05XX-4BH83-X-X-S" H 2100 2750 50  0001 C CNN
+F 3 "~" H 2100 2750 50  0001 C CNN
+	1    1950 2800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1850 3200 1850 3350
+Wire Wire Line
+	1850 3350 1900 3350
+Wire Wire Line
+	1950 3350 1950 3200
+$Comp
+L power:GND #PWR0101
+U 1 1 5F85C4D4
+P 1900 3350
+F 0 "#PWR0101" H 1900 3100 50  0001 C CNN
+F 1 "GND" H 1905 3177 50  0000 C CNN
+F 2 "" H 1900 3350 50  0001 C CNN
+F 3 "" H 1900 3350 50  0001 C CNN
+	1    1900 3350
+	1    0    0    -1  
+$EndComp
+Connection ~ 1900 3350
+Wire Wire Line
+	1900 3350 1950 3350
+NoConn ~ 2250 3000
+$Comp
+L power:+5V #PWR0102
+U 1 1 5F85CB33
+P 2700 1750
+F 0 "#PWR0102" H 2700 1600 50  0001 C CNN
+F 1 "+5V" H 2715 1923 50  0000 C CNN
+F 2 "" H 2700 1750 50  0001 C CNN
+F 3 "" H 2700 1750 50  0001 C CNN
+	1    2700 1750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2250 2600 2700 2600
+Text Label 2250 2800 0    50   ~ 0
+D+
+Text Label 2250 2900 0    50   ~ 0
+D-
+$Comp
+L MCU_Microchip_PIC16:PIC16F1454-IP U1
+U 1 1 5F85D5AE
+P 5500 2900
+F 0 "U1" H 3700 3400 50  0000 C CNN
+F 1 "PIC16F1454-IP" H 4350 3400 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm_Socket" H 5500 2900 50  0001 C CNN
+F 3 "http://ww1.microchip.com/downloads/en/DeviceDoc/41639A.pdf" H 5500 2900 50  0001 C CNN
+	1    5500 2900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3500 2800 2250 2800
+Wire Wire Line
+	2250 2900 3500 2900
+$Comp
+L Connector:Mini-DIN-8 J2
+U 1 1 5F862F52
+P 9400 2900
+F 0 "J2" H 9400 3381 50  0000 C CNN
+F 1 "Mini-DIN-8" H 9400 3290 50  0000 C CNN
+F 2 "r_mini_din:Mini_din7" V 9390 2890 50  0001 C CNN
+F 3 "http://service.powerdynamics.com/ec/Catalog17/Section%2011.pdf" V 9390 2890 50  0001 C CNN
+	1    9400 2900
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR0103
+U 1 1 5F866D77
+P 5500 2300
+F 0 "#PWR0103" H 5500 2150 50  0001 C CNN
+F 1 "+5V" H 5515 2473 50  0000 C CNN
+F 2 "" H 5500 2300 50  0001 C CNN
+F 3 "" H 5500 2300 50  0001 C CNN
+	1    5500 2300
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR0104
+U 1 1 5F86794C
+P 8950 2250
+F 0 "#PWR0104" H 8950 2100 50  0001 C CNN
+F 1 "+5V" H 8965 2423 50  0000 C CNN
+F 2 "" H 8950 2250 50  0001 C CNN
+F 3 "" H 8950 2250 50  0001 C CNN
+	1    8950 2250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9100 2800 8950 2800
+Text Label 7500 3000 0    50   ~ 0
+TXD
+Text Label 7500 3100 0    50   ~ 0
+RXD
+Text Label 9700 2800 0    50   ~ 0
+RXD
+Text Label 9100 2900 2    50   ~ 0
+TXD
+Wire Wire Line
+	9100 3000 8950 3000
+Wire Wire Line
+	8950 3000 8950 3300
+Wire Wire Line
+	8950 3300 9400 3300
+Wire Wire Line
+	9800 3300 9800 3000
+Wire Wire Line
+	9800 3000 9700 3000
+NoConn ~ 9400 3200
+Wire Wire Line
+	8950 2250 8950 2300
+Wire Wire Line
+	8950 2300 10000 2300
+Wire Wire Line
+	10000 2300 10000 2900
+Wire Wire Line
+	10000 2900 9700 2900
+Connection ~ 8950 2300
+Wire Wire Line
+	8950 2300 8950 2800
+NoConn ~ 9400 2600
+$Comp
+L power:GND #PWR0105
+U 1 1 5F8699D7
+P 5500 3500
+F 0 "#PWR0105" H 5500 3250 50  0001 C CNN
+F 1 "GND" H 5505 3327 50  0000 C CNN
+F 2 "" H 5500 3500 50  0001 C CNN
+F 3 "" H 5500 3500 50  0001 C CNN
+	1    5500 3500
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0106
+U 1 1 5F869DAC
+P 9400 3300
+F 0 "#PWR0106" H 9400 3050 50  0001 C CNN
+F 1 "GND" H 9405 3127 50  0000 C CNN
+F 2 "" H 9400 3300 50  0001 C CNN
+F 3 "" H 9400 3300 50  0001 C CNN
+	1    9400 3300
+	1    0    0    -1  
+$EndComp
+Connection ~ 9400 3300
+Wire Wire Line
+	9400 3300 9800 3300
+$Comp
+L Device:C C1
+U 1 1 5F86A2E5
+P 3150 2000
+F 0 "C1" H 3265 2046 50  0000 L CNN
+F 1 "100n" H 3265 1955 50  0000 L CNN
+F 2 "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm" H 3188 1850 50  0001 C CNN
+F 3 "~" H 3150 2000 50  0001 C CNN
+	1    3150 2000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2700 1750 2700 1850
+Wire Wire Line
+	2700 1850 3150 1850
+Connection ~ 2700 1850
+Wire Wire Line
+	2700 1850 2700 2600
+$Comp
+L power:GND #PWR0107
+U 1 1 5F86BAD2
+P 3150 2150
+F 0 "#PWR0107" H 3150 1900 50  0001 C CNN
+F 1 "GND" H 3155 1977 50  0000 C CNN
+F 2 "" H 3150 2150 50  0001 C CNN
+F 3 "" H 3150 2150 50  0001 C CNN
+	1    3150 2150
+	1    0    0    -1  
+$EndComp
+NoConn ~ 3500 2600
+NoConn ~ 3500 3000
+NoConn ~ 3500 3100
+NoConn ~ 3500 3200
+NoConn ~ 7500 2600
+NoConn ~ 7500 2700
+NoConn ~ 7500 2800
+NoConn ~ 7500 2900
+$EndSCHEMATC

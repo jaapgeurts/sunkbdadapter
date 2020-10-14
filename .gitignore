@@ -56,3 +56,5 @@ dkms.conf
 *.eep
 *.lss
 *.sym
+/firmware/sun_type6_adapter.X/build/
+/firmware/sun_type6_adapter.X/dist/

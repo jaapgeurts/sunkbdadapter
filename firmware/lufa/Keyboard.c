@@ -39,10 +39,18 @@
 
 #define KEY 7
 
-#define LED_NUMLOCK    0x01
-#define LED_COMPOSE    0x02
+#define LED_NUMLOCK 0x01
+#define LED_COMPOSE 0x02
 #define LED_SCROLLLOCK 0x04
-#define LED_CAPSLOCK   0x08
+#define LED_CAPSLOCK 0x08
+
+#define CMD_RESET     0x01
+#define CMD_BELL_ON   0x02
+#define CMD_BELL_OFF  0x03
+#define CMD_CLICK_ON  0x0A
+#define CMD_CLICK_OFF 0x0B
+#define CMD_LED       0x0E
+#define CMD_LAYOUT    0x0F
 
 /** Buffer to hold the previously generated Keyboard HID report, for comparison purposes inside the HID class driver. */
 static uint8_t PrevKeyboardHIDReportBuffer[sizeof(USB_KeyboardReport_Data_t)];
@@ -51,6 +59,9 @@ static sserial_t *ssSerial;
 
 static uint8_t modifierMask = 0x00;
 uint8_t lastKey = 0x00;
+
+void ResetKbd(void);
+void BeepKbd(void);
 
 /** LUFA HID Class driver interface configuration and state information. This structure is
  *  passed to all HID Class driver functions, so that multiple instances of the same class
@@ -71,8 +82,6 @@ USB_ClassInfo_HID_Device_t Keyboard_HID_Interface =
 				.PrevReportINBufferSize = sizeof(PrevKeyboardHIDReportBuffer),
 			},
 };
-
-#define BUFF_SIZE 25
 
 /** Main program entry point. This routine contains the overall program flow, including initial
  *  setup of all components and the main program loop.
@@ -130,23 +139,59 @@ void SetupHardware()
 	USB_Init();
 }
 
-/** Event handler for the library USB Connection event. */
-void EVENT_USB_Device_Connect(void)
+void ResetKbd(void)
 {
-	//	LEDs_SetAllLEDs(LEDMASK_USB_ENUMERATING);
+	modifierMask = 0;
+	lastKey = 0;
+
 	// RESET the keyboard
-	ss_write(ssSerial,0x01);
+	ss_write(ssSerial, CMD_RESET);
 	// swallow the response
 	ss_read(ssSerial);
 	ss_read(ssSerial);
 	ss_read(ssSerial);
 }
 
+void BeepKbd(void)
+{
+	// TODO: send led state to keyboard
+	ss_write(ssSerial, CMD_BELL_ON);
+	_delay_ms(100);
+	ss_write(ssSerial, CMD_BELL_OFF);
+	_delay_ms(400);
+	ss_write(ssSerial, CMD_BELL_ON);
+	_delay_ms(100);
+	ss_write(ssSerial, CMD_BELL_OFF);
+}
+
+/** Event handler for the library USB Connection event. */
+void EVENT_USB_Device_Connect(void)
+{
+	// // reset the keyboard
+	//ResetKbd();
+	BeepKbd();
+}
+
 /** Event handler for the library USB Disconnection event. */
 void EVENT_USB_Device_Disconnect(void)
 {
-	//	LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);
-	// nothing to do
+
+	// // reset the keyboard
+	//ResetKbd();
+	BeepKbd();
+}
+
+void EVENT_USB_Device_Reset(void)
+{
+	// // reset the keyboard
+	//ResetKbd();
+	// better not reset the keyboard. This make it lose all the state.
+}
+
+void EVENT_USB_UIDChange(void)
+{
+	//ResetKbd();
+	BeepKbd();
 }
 
 /** Event handler for the library USB Configuration Changed event. */
@@ -157,6 +202,9 @@ void EVENT_USB_Device_ConfigurationChanged(void)
 	ConfigSuccess &= HID_Device_ConfigureEndpoints(&Keyboard_HID_Interface);
 
 	USB_Device_EnableSOFEvents();
+
+	// // reset the keyboard
+//	ResetKbd();
 }
 
 /** Event handler for the library USB Control Request reception event. */
@@ -219,7 +267,7 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t *const HIDIn
 			bool isReleased = (scanCode & 0x80) == 0x80;
 			uint8_t usbKeyCode = keytable[sunKeyCode];
 
-		    bool wasMod = HandleModifier(KeyboardReport, usbKeyCode, isReleased);
+			bool wasMod = HandleModifier(KeyboardReport, usbKeyCode, isReleased);
 
 			KeyboardReport->Modifier = modifierMask;
 
@@ -250,22 +298,22 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t *const HIDI
 										  const void *ReportData,
 										  const uint16_t ReportSize)
 {
-	uint8_t  LEDMask   = 0x00;
+	uint8_t LEDMask = 0x00;
 	uint8_t *LEDReport = (uint8_t *)ReportData;
 
 	if (*LEDReport & HID_KEYBOARD_LED_NUMLOCK)
-	  LEDMask |= LED_NUMLOCK;
+		LEDMask |= LED_NUMLOCK;
 
 	if (*LEDReport & HID_KEYBOARD_LED_CAPSLOCK)
-	  LEDMask |= LED_CAPSLOCK;
+		LEDMask |= LED_CAPSLOCK;
 
 	if (*LEDReport & HID_KEYBOARD_LED_SCROLLLOCK)
-	  LEDMask |= LED_SCROLLLOCK;
+		LEDMask |= LED_SCROLLLOCK;
 
 	if (*LEDReport & HID_KEYBOARD_LED_COMPOSE)
 		LEDMask |= LED_COMPOSE;
 
-	uint8_t ledCmd[2] = { 0x0e, LEDMask };
+	uint8_t ledCmd[2] = {CMD_LED, LEDMask};
 	// TODO: send led state to keyboard
-	ss_write_bytes(ssSerial,ledCmd,2);
+	ss_write_bytes(ssSerial, ledCmd, 2);
 }

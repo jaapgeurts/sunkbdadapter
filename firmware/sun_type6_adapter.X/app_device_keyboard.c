@@ -90,10 +90,10 @@ const struct
     0x95, 0x06, //   REPORT_COUNT (6)
     0x75, 0x08, //   REPORT_SIZE (8)
     0x15, 0x00, //   LOGICAL_MINIMUM (0)
-    0x25, 0x65, //   LOGICAL_MAXIMUM (101)
+    0x25, 0xff, // 0x65, //   LOGICAL_MAXIMUM (101)
     0x05, 0x07, //   USAGE_PAGE (Keyboard)
     0x19, 0x00, //   USAGE_MINIMUM (Reserved (no event indicated))
-    0x29, 0x65, //   USAGE_MAXIMUM (Keyboard Application)
+    0x29, 0xff, // 0x65, //   USAGE_MAXIMUM (Keyboard Application)
     0x81, 0x00, //   INPUT (Data,Ary,Abs)
     0xc0} // End Collection
 };
@@ -277,18 +277,6 @@ static volatile KEYBOARD_OUTPUT_REPORT outputReport KEYBOARD_OUTPUT_REPORT_DATA_
 // *****************************************************************************
 static void APP_KeyboardProcessOutputReport(void);
 
-
-//External variables declared in other .c files
-extern volatile signed int SOFCounter;
-
-
-//Application variables that need wide scope
-KEYBOARD_INPUT_REPORT oldInputReport;
-signed int keyboardIdleRate;
-signed int LocalSOFCount;
-static signed int OldSOFCount;
-
-
 // *****************************************************************************
 // *****************************************************************************
 // Section: Macros or Functions
@@ -306,16 +294,6 @@ void APP_KeyboardInit(void)
   }
   keyboard.index = 0;
 
-  //Set the default idle rate to 500ms (until the host sends a SET_IDLE request to change it to a new value)
-  keyboardIdleRate = 500;
-
-  //Copy the (possibly) interrupt context SOFCounter value into a local variable.
-  //Using a while() loop to do this since the SOFCounter isn't necessarily atomically
-  //updated and therefore we need to read it a minimum of twice to ensure we captured the correct value.
-  while (OldSOFCount != SOFCounter) {
-    OldSOFCount = SOFCounter;
-  }
-
   //enable the HID endpoint
   USBEnableEndpoint(HID_EP, USB_IN_ENABLED | USB_OUT_ENABLED | USB_HANDSHAKE_ENABLED | USB_DISALLOW_SETUP);
 
@@ -325,10 +303,6 @@ void APP_KeyboardInit(void)
 
 void APP_KeyboardTasks(void)
 {
-  signed int TimeDeltaMilliseconds;
-  unsigned char i;
-  bool needToSendNewReportPacket;
-
 
   /* If the USB device isn't configured yet, we can't really do anything
    * else since we don't have a host to talk to.  So jump back to the
@@ -336,7 +310,6 @@ void APP_KeyboardTasks(void)
   if (USBGetDeviceState() < CONFIGURED_STATE) {
     return;
   }
-
 
   /* If we are currently suspended, then we need to see if we need to
    * issue a remote wakeup.  In either case, we shouldn't process any
@@ -348,34 +321,8 @@ void APP_KeyboardTasks(void)
     if (UART_Data_Ready()) {
       //Add code here to issue a resume signal.
     }
-
     return;
   }
-
-  //Copy the (possibly) interrupt context SOFCounter value into a local variable.
-  //Using a while() loop to do this since the SOFCounter isn't necessarily atomically
-  //updated and we need to read it a minimum of twice to ensure we captured the correct value.
-  while (LocalSOFCount != SOFCounter) {
-    LocalSOFCount = SOFCounter;
-  }
-
-  //Compute the elapsed time since the last input report was sent (we need
-  //this info for properly obeying the HID idle rate set by the host).
-  TimeDeltaMilliseconds = LocalSOFCount - OldSOFCount;
-  //Check for negative value due to count wraparound back to zero.
-  if (TimeDeltaMilliseconds < 0) {
-    TimeDeltaMilliseconds = (32767 - OldSOFCount) + LocalSOFCount;
-  }
-  //Check if the TimeDelay is quite large.  If the idle rate is == 0 (which represents "infinity"),
-  //then the TimeDeltaMilliseconds could also become infinity (which would cause overflow)
-  //if there is no recent button presses or other changes occurring on the keyboard.
-  //Therefore, saturate the TimeDeltaMilliseconds if it gets too large, by virtue
-  //of updating the OldSOFCount, even if we haven't actually sent a packet recently.
-  if (TimeDeltaMilliseconds > 5000) {
-    OldSOFCount = LocalSOFCount - 5000;
-
-  }
-
 
   /* Check if the IN endpoint is busy, and if it isn't check if we want to send
    * keystroke data to the host. */
@@ -404,18 +351,17 @@ void APP_KeyboardTasks(void)
         }
         else { // it's  a normal key
           if (isPressed) {
-            // if (keyboard.index < 6) {
-            //  keyboard.keys[keyboard.index] = usbKeyCode;
-            //  keyboard.index++;
-            //}
-            keyboard.keys[0] = usbKeyCode;
+            if (keyboard.index < 6) {
+              keyboard.keys[keyboard.index] = usbKeyCode;
+              keyboard.index++;
+            }
+            //keyboard.keys[0] = usbKeyCode;
           }
           else { // it's a key release
             // NKRO handling
             // remove the key if already in the list
 
-            keyboard.keys[0] = 0;
-            /*
+            // keyboard.keys[0] = 0;
             uint8_t i;
 
             for (i = 0; i < keyboard.index; i++) {
@@ -427,47 +373,16 @@ void APP_KeyboardTasks(void)
               keyboard.keys[j] = keyboard.keys[j + 1];
             }
             keyboard.index--;
-             */
           }
         }
+
+        /* Set the important data, the key press data. */
+        for (uint8_t i = 0; i < 6; i++)
+          inputReport.keys[i] = keyboard.keys[i];
+        inputReport.modifiers.value = keyboard.modifiers;
+
+        keyboard.lastINTransmission = HIDTxPacket(HID_EP, (uint8_t*) & inputReport, sizeof (inputReport));
       }
-      /* Set the important data, the key press data. */
-      for (uint8_t i = 0; i < 6; i++)
-        inputReport.keys[i] = keyboard.keys[i];
-      inputReport.modifiers.value = keyboard.modifiers;
-    }
-
-    //Check to see if the new packet contents are somehow different from the most
-    //recently sent packet contents.
-    needToSendNewReportPacket = false;
-    for (i = 0; i < sizeof (inputReport); i++) {
-      if (*((uint8_t*) & oldInputReport + i) != *((uint8_t*) & inputReport + i)) {
-        needToSendNewReportPacket = true;
-        break;
-      }
-    }
-
-    //Check if the host has set the idle rate to something other than 0 (which is effectively "infinite").
-    //If the idle rate is non-infinite, check to see if enough time has elapsed since
-    //the last packet was sent, and it is time to send a new repeated packet or not.
-    if (keyboardIdleRate != 0) {
-      //Check if the idle rate time limit is met.  If so, need to send another HID input report packet to the host
-      if (TimeDeltaMilliseconds >= keyboardIdleRate) {
-        needToSendNewReportPacket = true;
-      }
-    }
-
-    //Now send the new input report packet, if it is appropriate to do so (ex: new data is
-    //present or the idle rate limit was met).
-    if (needToSendNewReportPacket == true) {
-      //Save the old input report packet contents.  We do this so we can detect changes in report packet content
-      //useful for determining when something has changed and needs to get re-sent to the host when using
-      //infinite idle rate setting.
-      oldInputReport = inputReport;
-
-      /* Send the 8 byte packet over USB to the host. */
-      keyboard.lastINTransmission = HIDTxPacket(HID_EP, (uint8_t*) & inputReport, sizeof (inputReport));
-      OldSOFCount = LocalSOFCount; //Save the current time, so we know when to send the next packet (which depends in part on the idle rate setting)
     }
 
   }//if(HIDTxHandleBusy(keyboard.lastINTransmission) == false)
@@ -524,21 +439,6 @@ void USBHIDCBSetReportHandler(void)
    * since this is all that the report descriptor allows it to send. */
   USBEP0Receive((uint8_t*) & CtrlTrfData, USB_EP0_BUFF_SIZE, USBHIDCBSetReportComplete);
 }
-
-
-//Callback function called by the USB stack, whenever the host sends a new SET_IDLE
-//command.
-
-void USBHIDCBSetIdleRateHandler(uint8_t reportID, uint8_t newIdleRate)
-{
-  //Make sure the report ID matches the keyboard input report id number.
-  //If however the firmware doesn't implement/use report ID numbers,
-  //then it should be == 0.
-  if (reportID == 0) {
-    keyboardIdleRate = newIdleRate;
-  }
-}
-
 
 /*******************************************************************************
  End of File

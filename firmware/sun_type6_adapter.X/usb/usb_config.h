@@ -162,7 +162,7 @@ please contact mla_licensing@microchip.com
 #define HID_RPT01_SIZE          63
 //#define USER_GET_REPORT_HANDLER USBHIDCBGetReportHandler	
 #define USER_SET_REPORT_HANDLER USBHIDCBSetReportHandler	
-#define USB_DEVICE_HID_IDLE_RATE_CALLBACK(reportID, newIdleRate)    USBHIDCBSetIdleRateHandler(reportID, newIdleRate)
+//#define USB_DEVICE_HID_IDLE_RATE_CALLBACK(reportID, newIdleRate)    USBHIDCBSetIdleRateHandler(reportID, newIdleRate)
 
 /** DEFINITIONS ****************************************************/
 

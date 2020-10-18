@@ -45,10 +45,10 @@ const USB_DEVICE_DESCRIPTOR device_dsc = {
   USB_EP0_BUFF_SIZE, // Max packet size for EP0, see usb_config.h
   MY_VID, // Vendor ID
   MY_PID, // Product ID: Keyboard fw demo
-  0x0001, // Device release number in BCD format
+  0x0001, // Device release number in BCD format // TODO: BCDS
   0x01, // Manufacturer string index
   0x02, // Product string index
-  0x00, // Device serial number string index
+  0x00, // Device serial number string index // TODO: serial string
   0x01 // Number of possible configurations
 };
 
@@ -72,7 +72,7 @@ const uint8_t configDescriptor1[] = {
   2, // Number of endpoints in this intf
   HID_INTF, // Class code
   BOOT_INTF_SUBCLASS, // Subclass code
-  HID_PROTOCOL_KEYBOARD, // Protocol code
+  HID_PROTOCOL_KEYBOARD, // Protocol code // TODO: check boot protocol
   0, // Interface string index
 
   /* HID Class-Specific Descriptor */
@@ -151,7 +151,8 @@ sd002 = {
 
   // 'K', 'e', 'y', 'b', 'o', 'a', 'r', 'd', ' ', 'D', 'e', 'm', 'o'
   {
-    'T', 'y', 'p', 'e', ' ', '6', ' ', 'U', 'A', 'R', 'T', ' ', 'U', 'n', 'i', 'x', ' ', 'K', 'e', 'y', 'b', 'o', 'a', 'r', 'd'}
+    'T', 'y', 'p', 'e', ' ', '6', ' ', 'U', 'A', 'R', 'T', ' ', 'U', 'n', 'i', 'x', ' ', 'K', 'e', 'y', 'b', 'o', 'a', 'r', 'd'
+  }
 
 };
 

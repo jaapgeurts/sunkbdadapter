@@ -2,7 +2,7 @@
 
 #include <xc.h>
 
-void UART_Init()
+void UART_Init(void)
 {
 
 
@@ -22,7 +22,7 @@ char UART_TX_Empty()
   return TRMT;
 }
 
-char UART_Data_Ready()
+char UART_Data_Ready(void)
 {
   return RCIF;
 }

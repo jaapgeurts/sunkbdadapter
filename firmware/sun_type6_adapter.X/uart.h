@@ -5,11 +5,11 @@
 #include <stdbool.h>
 
 
-void UART_Init();
+void UART_Init(void);
 
-char UART_TX_Empty();
+char UART_TX_Empty(void);
 
-char UART_Data_Ready();
+char UART_Data_Ready(void);
 
 bool UART_Read(uint8_t *data);
 

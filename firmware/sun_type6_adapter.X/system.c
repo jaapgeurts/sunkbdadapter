@@ -20,7 +20,6 @@ please contact mla_licensing@microchip.com
 #include "system.h"
 #include "usb/usb.h"
 #include "usb/usb_device.h"
-#include "leds.h"
 
 /** CONFIGURATION Bits **********************************************/
 // PIC16F1459 configuration bit settings:
@@ -93,9 +92,9 @@ void SYSTEM_Initialize(SYSTEM_STATE state)
       OSCCON = 0xFC; //HFINTOSC @ 16MHz, 3X PLL, PLL enabled
       ACTCON = 0x90; //Active clock tuning enabled for USB
 #endif
-      LED_Enable(LED_USB_DEVICE_STATE);
-      LED_Enable(LED_USB_DEVICE_HID_KEYBOARD_CAPS_LOCK);
-      BUTTON_Enable(BUTTON_USB_DEVICE_HID_KEYBOARD_KEY);
+
+      // reroute RX so that RX connected to  C2 and C2 = !C1
+      TRISC5 = 1; // set RX to input
       break;
 
     case SYSTEM_STATE_USB_SUSPEND:
@@ -117,4 +116,6 @@ void INTERRUPT SYS_InterruptHigh(void)
 #if defined(USB_INTERRUPT)
   USBDeviceTasks();
 #endif
+
+
 }

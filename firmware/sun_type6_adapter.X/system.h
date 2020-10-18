@@ -23,10 +23,7 @@ please contact mla_licensing@microchip.com
 #include <xc.h>
 #include <stdbool.h>
 
-#include "buttons.h"
-#include "io_mapping.h"
 #include "usb/fixed_address_memory.h"
-#include "leds.h"
 
 #include "usb/usb_config.h"
 

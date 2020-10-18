@@ -29,7 +29,9 @@ please contact mla_licensing@microchip.com
 #include "usb/usb.h"
 #include "usb/usb_device_hid.h"
 
-#include "app_led_usb_status.h"
+#include "uart.h"
+#include "sunkeytable.h"
+
 
 #if defined(__XC8)
 #define PACKED
@@ -42,6 +44,19 @@ please contact mla_licensing@microchip.com
 // Section: File Scope or Global Constants
 // *****************************************************************************
 // *****************************************************************************
+
+#define LED_NUMLOCK 0x01
+#define LED_COMPOSE 0x02
+#define LED_SCROLLLOCK 0x04
+#define LED_CAPSLOCK 0x08
+
+#define CMD_RESET     0x01
+#define CMD_BELL_ON   0x02
+#define CMD_BELL_OFF  0x03
+#define CMD_CLICK_ON  0x0A
+#define CMD_CLICK_OFF 0x0B
+#define CMD_LED       0x0E
+#define CMD_LAYOUT    0x0F
 
 //Class specific descriptor - HID Keyboard
 
@@ -232,8 +247,9 @@ typedef struct
 {
   USB_HANDLE lastINTransmission;
   USB_HANDLE lastOUTTransmission;
-  unsigned char key;
-  bool waitingForRelease;
+  uint8_t keys[6];
+  uint8_t modifiers;
+  uint8_t index;
 } KEYBOARD;
 
 // *****************************************************************************
@@ -262,7 +278,7 @@ static volatile KEYBOARD_OUTPUT_REPORT outputReport KEYBOARD_OUTPUT_REPORT_DATA_
 static void APP_KeyboardProcessOutputReport(void);
 
 
-//Exteranl variables declared in other .c files
+//External variables declared in other .c files
 extern volatile signed int SOFCounter;
 
 
@@ -271,8 +287,6 @@ KEYBOARD_INPUT_REPORT oldInputReport;
 signed int keyboardIdleRate;
 signed int LocalSOFCount;
 static signed int OldSOFCount;
-
-
 
 
 // *****************************************************************************
@@ -287,8 +301,10 @@ void APP_KeyboardInit(void)
   // transmission
   keyboard.lastINTransmission = 0;
 
-  keyboard.key = 4;
-  keyboard.waitingForRelease = false;
+  for (uint8_t i = 0; i < 6; i++) {
+    keyboard.keys[i] = 0;
+  }
+  keyboard.index = 0;
 
   //Set the default idle rate to 500ms (until the host sends a SET_IDLE request to change it to a new value)
   keyboardIdleRate = 500;
@@ -313,12 +329,14 @@ void APP_KeyboardTasks(void)
   unsigned char i;
   bool needToSendNewReportPacket;
 
+
   /* If the USB device isn't configured yet, we can't really do anything
    * else since we don't have a host to talk to.  So jump back to the
    * top of the while loop. */
   if (USBGetDeviceState() < CONFIGURED_STATE) {
     return;
   }
+
 
   /* If we are currently suspended, then we need to see if we need to
    * issue a remote wakeup.  In either case, we shouldn't process any
@@ -327,7 +345,7 @@ void APP_KeyboardTasks(void)
   if (USBIsDeviceSuspended() == true) {
     //Check if we should assert a remote wakeup request to the USB host,
     //when the user presses the pushbutton.
-    if (BUTTON_IsPressed(BUTTON_USB_DEVICE_REMOTE_WAKEUP) == 0) {
+    if (UART_Data_Ready()) {
       //Add code here to issue a resume signal.
     }
 
@@ -355,6 +373,7 @@ void APP_KeyboardTasks(void)
   //of updating the OldSOFCount, even if we haven't actually sent a packet recently.
   if (TimeDeltaMilliseconds > 5000) {
     OldSOFCount = LocalSOFCount - 5000;
+
   }
 
 
@@ -362,24 +381,60 @@ void APP_KeyboardTasks(void)
    * keystroke data to the host. */
   if (HIDTxHandleBusy(keyboard.lastINTransmission) == false) {
     /* Clear the INPUT report buffer.  Set to all zeros. */
-    memset(&inputReport, 0, sizeof (inputReport));
 
-    if (BUTTON_IsPressed(BUTTON_USB_DEVICE_HID_KEYBOARD_KEY) == true) {
-      if (keyboard.waitingForRelease == false) {
-        keyboard.waitingForRelease = true;
+    // read uart and process if any
+    if (UART_Data_Ready()) {
+      memset(&inputReport, 0, sizeof (inputReport));
 
-        /* Set the only important data, the key press data. */
-        inputReport.keys[0] = keyboard.key++;
+      uint8_t scanCode;
+      UART_Read(&scanCode);
+      uint8_t sunKeyCode = scanCode & 0x7f;
+      if (sunKeyCode != 0x7f) { // ignore idle messages
+        uint8_t usbKeyCode = keytable[sunKeyCode];
+        bool isPressed = (scanCode & 0x80) == 0x00;
+        bool isModifier = (usbKeyCode & 0xe0) == 0xe0; // check if 0xE0 <= usbcode <= 0xE7 // was 0xf8
+        if (isModifier) {
+          uint8_t mask = (1 << (usbKeyCode & 0x07));
 
-        //In this simulated keyboard, if the last key pressed exceeds the a-z + 0-9,
-        //then wrap back around so we send 'a' again.
-        if (keyboard.key == 40) {
-          keyboard.key = 4;
+          if (isPressed)
+            keyboard.modifiers |= mask;
+          else
+            keyboard.modifiers &= ~mask;
+
+        }
+        else { // it's  a normal key
+          if (isPressed) {
+            // if (keyboard.index < 6) {
+            //  keyboard.keys[keyboard.index] = usbKeyCode;
+            //  keyboard.index++;
+            //}
+            keyboard.keys[0] = usbKeyCode;
+          }
+          else { // it's a key release
+            // NKRO handling
+            // remove the key if already in the list
+
+            keyboard.keys[0] = 0;
+            /*
+            uint8_t i;
+
+            for (i = 0; i < keyboard.index; i++) {
+              if (keyboard.keys[i] == usbKeyCode)
+                break;
+            }
+            keyboard.keys[i] = 0;
+            for (uint8_t j = i; j < keyboard.index; j++) {
+              keyboard.keys[j] = keyboard.keys[j + 1];
+            }
+            keyboard.index--;
+             */
+          }
         }
       }
-    }
-    else {
-      keyboard.waitingForRelease = false;
+      /* Set the important data, the key press data. */
+      for (uint8_t i = 0; i < 6; i++)
+        inputReport.keys[i] = keyboard.keys[i];
+      inputReport.modifiers.value = keyboard.modifiers;
     }
 
     //Check to see if the new packet contents are somehow different from the most
@@ -435,12 +490,21 @@ void APP_KeyboardTasks(void)
 
 static void APP_KeyboardProcessOutputReport(void)
 {
+  uint8_t LEDMask = 0x00;
   if (outputReport.leds.capsLock) {
-    LED_On(LED_USB_DEVICE_HID_KEYBOARD_CAPS_LOCK);
+    LEDMask |= LED_CAPSLOCK;
   }
-  else {
-    LED_Off(LED_USB_DEVICE_HID_KEYBOARD_CAPS_LOCK);
+  if (outputReport.leds.numLock) {
+    LEDMask |= LED_NUMLOCK;
   }
+  if (outputReport.leds.scrollLock) {
+    LEDMask |= LED_SCROLLLOCK;
+  }
+  if (outputReport.leds.compose) {
+    LEDMask |= LED_COMPOSE;
+  }
+  uint8_t ledCmd[2] = {CMD_LED, LEDMask};
+  UART_Write_Buf(ledCmd, 2);
 }
 
 static void USBHIDCBSetReportComplete(void)

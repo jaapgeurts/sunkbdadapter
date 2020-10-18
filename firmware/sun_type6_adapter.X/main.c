@@ -31,9 +31,11 @@ please contact mla_licensing@microchip.com
 #include "usb/usb.h"
 #include "usb/usb_device_hid.h"
 
-/* Demo project includes */
-#include "app_led_usb_status.h"
 #include "app_device_keyboard.h"
+
+#include "uart.h"
+
+#define _XTAL_FREQ 16000000
 
 int main(void)
 {
@@ -41,6 +43,15 @@ int main(void)
 
   USBDeviceInit();
   USBDeviceAttach();
+
+  UART_Init();
+
+  // swallow the boot sequence
+  // TODO: check boot sequence
+  for (int i = 0; i < 3; i++) {
+    uint8_t data;
+    UART_Read(&data);
+  }
 
   while (1) {
     SYSTEM_Tasks();
@@ -62,6 +73,7 @@ int main(void)
 
     /* Run the keyboard demo tasks. */
     APP_KeyboardTasks();
+
   }//end while
 }//end main
 

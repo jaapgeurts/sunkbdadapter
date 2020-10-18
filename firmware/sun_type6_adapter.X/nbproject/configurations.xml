@@ -4,14 +4,23 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <logicalFolder name="f1" displayName="usb" projectFiles="true">
+        <itemPath>usb/usb.h</itemPath>
+        <itemPath>usb/usb_ch9.h</itemPath>
+        <itemPath>usb/usb_common.h</itemPath>
+        <itemPath>usb/usb_config.h</itemPath>
+        <itemPath>usb/usb_device.h</itemPath>
+        <itemPath>usb/usb_device_hid.h</itemPath>
+        <itemPath>usb/usb_device_local.h</itemPath>
+        <itemPath>usb/usb_hal.h</itemPath>
+        <itemPath>usb/usb_hal_pic16f1.h</itemPath>
+        <itemPath>usb/fixed_address_memory.h</itemPath>
+      </logicalFolder>
       <itemPath>app_device_keyboard.h</itemPath>
-      <itemPath>app_led_usb_status.h</itemPath>
-      <itemPath>buttons.h</itemPath>
-      <itemPath>io_mapping.h</itemPath>
-      <itemPath>leds.h</itemPath>
       <itemPath>system.h</itemPath>
       <itemPath>system_config.h</itemPath>
-      <itemPath>usb/fixed_address_memory.h</itemPath>
+      <itemPath>uart.h</itemPath>
+      <itemPath>sunkeytable.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -27,11 +36,9 @@
         <itemPath>usb/usb_events.c</itemPath>
       </logicalFolder>
       <itemPath>app_device_keyboard.c</itemPath>
-      <itemPath>app_led_usb_status.c</itemPath>
-      <itemPath>buttons.c</itemPath>
-      <itemPath>leds.c</itemPath>
       <itemPath>main.c</itemPath>
       <itemPath>system.c</itemPath>
+      <itemPath>uart.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -162,6 +169,49 @@
         <property key="program-the-device-with-default-config-words" value="true"/>
         <property key="remove-unused-sections" value="true"/>
       </HI-TECH-LINK>
+      <PICkit3PlatformTool>
+        <property key="AutoSelectMemRanges" value="auto"/>
+        <property key="Freeze Peripherals" value="true"/>
+        <property key="SecureSegment.SegmentProgramming" value="FullChipProgramming"/>
+        <property key="ToolFirmwareFilePath"
+                  value="Press to browse for a specific firmware version"/>
+        <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>
+        <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="firmware.download.all" value="false"/>
+        <property key="hwtoolclock.frcindebug" value="false"/>
+        <property key="memories.aux" value="false"/>
+        <property key="memories.bootflash" value="true"/>
+        <property key="memories.configurationmemory" value="true"/>
+        <property key="memories.configurationmemory2" value="true"/>
+        <property key="memories.dataflash" value="true"/>
+        <property key="memories.eeprom" value="true"/>
+        <property key="memories.flashdata" value="true"/>
+        <property key="memories.id" value="true"/>
+        <property key="memories.instruction.ram" value="true"/>
+        <property key="memories.instruction.ram.ranges"
+                  value="${memories.instruction.ram.ranges}"/>
+        <property key="memories.programmemory" value="true"/>
+        <property key="memories.programmemory.ranges" value="0-1fff"/>
+        <property key="poweroptions.powerenable" value="true"/>
+        <property key="programmertogo.imagename" value=""/>
+        <property key="programoptions.donoteraseauxmem" value="false"/>
+        <property key="programoptions.eraseb4program" value="true"/>
+        <property key="programoptions.pgmspeed" value="2"/>
+        <property key="programoptions.preservedataflash" value="false"/>
+        <property key="programoptions.preservedataflash.ranges"
+                  value="${programoptions.preservedataflash.ranges}"/>
+        <property key="programoptions.preserveeeprom" value="false"/>
+        <property key="programoptions.preserveeeprom.ranges" value=""/>
+        <property key="programoptions.preserveprogram.ranges" value=""/>
+        <property key="programoptions.preserveprogramrange" value="false"/>
+        <property key="programoptions.preserveuserid" value="false"/>
+        <property key="programoptions.programcalmem" value="false"/>
+        <property key="programoptions.programuserotp" value="false"/>
+        <property key="programoptions.testmodeentrymethod" value="VDDFirst"/>
+        <property key="programoptions.usehighvoltageonmclr" value="false"/>
+        <property key="programoptions.uselvpprogramming" value="true"/>
+        <property key="voltagevalue" value="4.75"/>
+      </PICkit3PlatformTool>
       <XC8-CO>
         <property key="coverage-enable" value=""/>
       </XC8-CO>
